@@ -1,0 +1,30 @@
+# Use a base image with Python installed
+FROM python:3.9-slim
+
+# Install Ansible and other dependencies
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        ansible \
+        ssh \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set the working directory
+WORKDIR /ansible
+
+# Copy your Ansible playbook and inventory files into the container
+COPY deploy.yml .
+COPY hosts.ini .
+
+# Set working directory for the application
+WORKDIR /app
+
+# Copy Python code and install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+
+# Expose the port for the FastAPI application
+EXPOSE 8000
+
+# Command to run the FastAPI application
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
